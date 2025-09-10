@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ConQUEST</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="app-header">
+  <h1>ConQUEST</h1>
+      <div class="score-panel">
+        <label class="mode-label">Mode:
+          <select id="modeSelect" class="mode-select">
+            <option value="single" selected>Single Player</option>
+            <option value="two">Two Players</option>
+          </select>
+        </label>
+        <div class="score-item"><span class="dot dot-blue"></span> P1: <span id="p1Score">0</span></div>
+        <div class="score-item"><span class="dot" style="background:#ef4444"></span> P2: <span id="p2Score">0</span></div>
+        <div class="turn-badge" id="turnBadge">Turn: P1</div>
+        <div class="score-item muted">Total: <span id="totalCount">0</span></div>
+        <button id="newGameBtn" class="btn btn-ghost">New Game</button>
+      </div>
+    </header>
+
+    <main class="layout">
+      <section class="map-section">
+        <div id="mapContainer" class="map-container" aria-label="World map" role="img"></div>
+      </section>
+      <section class="play-section" id="playSection">
+        <div id="playerBanner" class="player-banner">Single Player</div>
+        <div class="flag-card" id="flagCard">
+          <div class="flag-emoji" id="flagEmoji">🏳️</div>
+          <div class="flag-label">Identify the country and its capital</div>
+        </div>
+
+        <div class="question">
+          <h2>Which country?</h2>
+          <div id="countryChoices" class="choices"></div>
+        </div>
+
+        <div class="question">
+          <h2>Which capital?</h2>
+          <div id="capitalChoices" class="choices"></div>
+        </div>
+
+        <div class="actions">
+          <button id="submitBtn" class="btn btn-primary" disabled>Submit</button>
+          <button id="skipBtn" class="btn btn-ghost">Skip</button>
+        </div>
+
+        <div id="feedback" class="feedback" aria-live="polite"></div>
+      </section>
+    </main>
+
+  <div id="toast" class="toast" aria-live="polite"></div>
+
+    <div id="overlay" class="overlay hidden" role="dialog" aria-modal="true" aria-labelledby="overlayTitle">
+      <div class="overlay-content">
+        <h2 id="overlayTitle">You win! 🎉</h2>
+        <p id="overlayMessage">You've conquered more than half the world.</p>
+        <div class="overlay-actions">
+          <button id="playAgainBtn" class="btn btn-primary">Play Again</button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="./src/app.js"></script>
+  </body>
+  </html>
