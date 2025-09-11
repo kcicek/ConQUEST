@@ -1,7 +1,9 @@
 export function renderMap({ countries, onCountryClick, getFillClass }) {
   const svgNS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(svgNS, 'svg');
-  svg.setAttribute('viewBox', '0 0 720 360');
+  // Crop top/bottom by shifting Y and reducing height for a more compact look
+  svg.setAttribute('viewBox', '0 30 720 300');
+  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
   svg.setAttribute('class', 'map-svg');
   svg.setAttribute('role', 'img');
   svg.setAttribute('aria-label', 'Simplified world map');

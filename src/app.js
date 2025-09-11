@@ -8,59 +8,127 @@ const state = {
   game: null,
   selectedCountryId: null,
   selectedCapitalId: null,
+  mode: 'single',
+  p1Name: 'Player 1',
+  p2Name: 'Player 2',
+  submitted: false,
+  timerId: null,
+  timeLeft: 0,
+  turnSeconds: 10,
 };
 
 // Elements
+const $introScreen = document.getElementById('introScreen');
+const $introForm = document.getElementById('introForm');
+const $introMode = document.getElementById('introMode');
+const $p1NameInput = document.getElementById('p1Name');
+const $p2NameInput = document.getElementById('p2Name');
+const $p1NameField = document.getElementById('p1NameField');
+const $p2NameField = document.getElementById('p2NameField');
+const $gameRoot = document.getElementById('gameRoot');
+const $introTimerSeconds = document.getElementById('introTimerSeconds');
 const $mapContainer = document.getElementById('mapContainer');
 const $countryChoices = document.getElementById('countryChoices');
 const $capitalChoices = document.getElementById('capitalChoices');
 const $flagEmoji = document.getElementById('flagEmoji');
 const $feedback = document.getElementById('feedback');
 const $submit = document.getElementById('submitBtn');
-const $skip = document.getElementById('skipBtn');
 const $newGame = document.getElementById('newGameBtn');
 const $playAgain = document.getElementById('playAgainBtn');
 const $overlay = document.getElementById('overlay');
-const $totalCount = document.getElementById('totalCount');
 const $modeSelect = document.getElementById('modeSelect');
 const $turnBadge = document.getElementById('turnBadge');
-const $p1Score = document.getElementById('p1Score');
-const $p2Score = document.getElementById('p2Score');
 const $playSection = document.getElementById('playSection');
 const $toast = document.getElementById('toast');
 const $playerBanner = document.getElementById('playerBanner');
+const $topBar = document.querySelector('#playSection .top-bar');
+const $turnTimer = document.getElementById('turnTimer');
+// New side panels
+const $p1Panel = document.getElementById('p1Panel');
+const $p2Panel = document.getElementById('p2Panel');
+const $p1PanelName = document.getElementById('p1PanelName');
+const $p2PanelName = document.getElementById('p2PanelName');
+const $p1PanelScore = document.getElementById('p1PanelScore');
+const $p2PanelScore = document.getElementById('p2PanelScore');
+const $p1FlagGrid = document.getElementById('p1FlagGrid');
+const $p2FlagGrid = document.getElementById('p2FlagGrid');
 
 function init() {
-  console.log('DEBUG: majorCountries', majorCountries);
-  state.game = new Game(majorCountries);
-  $totalCount.textContent = state.game.totalCountries.toString();
-  renderWorld();
+  // Show intro screen, hide game
+  $introScreen.style.display = '';
+  $gameRoot.style.display = 'none';
+  $p2NameField.style.display = 'none';
+  $introMode.addEventListener('change', () => {
+    $p2NameField.style.display = $introMode.value === 'two' ? '' : 'none';
+  });
+  $introForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    state.mode = $introMode.value;
+    state.p1Name = $p1NameInput.value.trim() || 'Player 1';
+    state.p2Name = $p2NameInput.value.trim() || 'Player 2';
+  state.turnSeconds = parseInt(($introTimerSeconds && $introTimerSeconds.value) || '10', 10);
+  // Reflect names into panels early
+  $p1PanelName.textContent = state.p1Name;
+  $p2PanelName.textContent = state.p2Name;
+    startGame();
+  });
   bindEvents();
-  nextTurn();
-  updateScores();
-  updateTurnBadge();
-  updatePlaySectionColor();
-  updatePlayerBanner();
+}
+
+function startGame() {
+  $introScreen.style.display = 'none';
+  $gameRoot.style.display = '';
+  // Sync mode selector in header (if present)
+  if ($modeSelect) $modeSelect.value = state.mode;
+  // Update side panel names and visibility immediately
+  $p1PanelName.textContent = state.p1Name;
+  $p2PanelName.textContent = state.p2Name;
+  $p2Panel.style.display = state.mode === 'two' ? '' : 'none';
+  state.game = new Game(majorCountries);
+  state.game.setMode(state.mode);
+  renderWorld();
+  restart();
 }
 
 function bindEvents() {
-  $submit.addEventListener('click', onSubmit);
-  $skip.addEventListener('click', onSkip);
-  $newGame.addEventListener('click', () => restart());
+  $newGame.addEventListener('click', () => showIntroScreen());
   $playAgain.addEventListener('click', () => { hideOverlay(); restart(); });
-  $modeSelect.addEventListener('change', () => {
-    state.game.setMode($modeSelect.value === 'two' ? 'two' : 'single');
-    restart();
-  });
+// Show intro screen and hide game UI
+function showIntroScreen() {
+  clearTurnTimer();
+  $introScreen.style.display = '';
+  $gameRoot.style.display = 'none';
+  // Optionally reset form fields
+  $p1NameInput.value = '';
+  $p2NameInput.value = '';
+  $introMode.value = 'single';
+  $p2NameField.style.display = 'none';
+}
+  if ($modeSelect) {
+    $modeSelect.addEventListener('change', () => {
+      state.mode = $modeSelect.value === 'two' ? 'two' : 'single';
+      state.game.setMode(state.mode);
+      restart();
+    });
+  }
 }
 function restart() {
+  clearTurnTimer();
   state.game.reset();
   state.selectedCapitalId = null;
   state.selectedCountryId = null;
   clearChildren($countryChoices);
   clearChildren($capitalChoices);
   $feedback.textContent = '';
-  $submit.disabled = true;
+  // submission state gate
+  state.submitted = false;
+  // Reset flag grids
+  clearChildren($p1FlagGrid);
+  clearChildren($p2FlagGrid);
+  // Update side panel names and visibility
+  $p1PanelName.textContent = state.p1Name;
+  $p2PanelName.textContent = state.p2Name;
+  $p2Panel.style.display = state.mode === 'two' ? '' : 'none';
   renderWorld();
   nextTurn();
   updateScores();
@@ -95,19 +163,34 @@ function nextTurn() {
     return;
   }
   updateTurnBadge();
-  // Show flag image if flagCode is present, else fallback to emoji
+  // Show flag image in banner if flagCode is present, else fallback to emoji
   $flagEmoji.innerHTML = '';
+  state.submitted = false;
   const country = state.game.pool.find(c => c.id === state.game.currentTargetId);
   if (country && country.flagCode) {
     const img = document.createElement('img');
-    img.src = `https://flagcdn.com/w80/${country.flagCode}.png`;
+    const code = (country.flagCode || '').toLowerCase();
+    img.src = `https://flagcdn.com/w80/${code}.png`;
     img.alt = country.name + ' flag';
-    img.width = 48;
-    img.height = 36;
-    img.style.verticalAlign = 'middle';
-    img.style.background = '#fff';
-    img.style.borderRadius = '6px';
-    img.style.boxShadow = '0 1px 4px #0002';
+  // centered flag lives in flag-top container; image sizing via CSS
+    img.title = country.name + ' flag';
+    img.onerror = () => {
+      // fallback chip if image fails to load
+      const chip = document.createElement('div');
+      chip.style.width = '48px';
+      chip.style.height = '36px';
+      chip.style.borderRadius = '6px';
+      chip.style.display = 'flex';
+      chip.style.alignItems = 'center';
+      chip.style.justifyContent = 'center';
+      chip.style.background = '#0b1220';
+      chip.style.border = '1px solid #1f2937';
+      chip.style.color = '#e5e7eb';
+      chip.style.fontSize = '12px';
+      chip.textContent = country.name.slice(0,3).toUpperCase();
+      $flagEmoji.innerHTML = '';
+      $flagEmoji.appendChild(chip);
+    };
     $flagEmoji.appendChild(img);
   } else {
     $flagEmoji.textContent = (typeof q.flag === 'string' && q.flag.length > 0) ? q.flag : '🏳️';
@@ -115,7 +198,10 @@ function nextTurn() {
   $feedback.textContent = '';
   state.selectedCountryId = null;
   state.selectedCapitalId = null;
-  $submit.disabled = true;
+  // no manual submit; auto-submit when both picked
+
+  // Start per-turn countdown (5 seconds)
+  startTurnTimer(state.turnSeconds || 10);
 
   // Render choices
   renderChoices($countryChoices, q.countryOptions, (id) => {
@@ -142,18 +228,52 @@ function renderChoices(container, options, onPick) {
 }
 
 function maybeEnableSubmit() {
-  $submit.disabled = !(state.selectedCapitalId && state.selectedCountryId);
+  if (!state.submitted && state.selectedCapitalId && state.selectedCountryId) {
+  onSubmit();
+  }
 }
 
 function onSubmit() {
+  if (state.submitted) return;
   if (!state.selectedCapitalId || !state.selectedCountryId) return;
+  state.submitted = true;
+  clearTurnTimer();
+  // Capture answering player BEFORE answer() possibly advances the turn
+  const answeringPlayer = state.game.currentPlayer();
   const result = state.game.answer(state.selectedCountryId, state.selectedCapitalId);
   if (result.correct) {
-    const player = state.game.currentPlayer();
-    $feedback.textContent = `Correct! Country conquered for ${player.toUpperCase()}.`;
+    let playerName = answeringPlayer === 'p1' ? state.p1Name : state.p2Name;
+    if (state.game.mode === 'single') playerName = state.p1Name;
+    $feedback.textContent = `Correct! Country conquered for ${playerName}.`;
     $feedback.className = 'feedback success';
-    showToast(`+1 for ${player.toUpperCase()}!`);
+    showToast(`+1 for ${playerName}!`);
     playSound('correct');
+    // Add flag chip to answering player's grid
+    const country = state.game.byId(state.game.currentTargetId);
+    if (country && country.flagCode) {
+      const chip = document.createElement('div');
+      chip.className = 'flag-chip';
+      chip.title = country.name;
+      const img = document.createElement('img');
+      const code = (country.flagCode || '').toLowerCase();
+      img.src = `https://flagcdn.com/w80/${code}.png`;
+      img.alt = country.name + ' flag';
+      img.onerror = () => {
+        chip.innerHTML = '';
+        const fallback = document.createElement('div');
+        fallback.style.width = '100%';
+        fallback.style.height = '100%';
+        fallback.style.display = 'flex';
+        fallback.style.alignItems = 'center';
+        fallback.style.justifyContent = 'center';
+        fallback.style.fontSize = '10px';
+        fallback.style.color = '#e5e7eb';
+        fallback.textContent = country.name.slice(0,3).toUpperCase();
+        chip.appendChild(fallback);
+      };
+      chip.appendChild(img);
+      (answeringPlayer === 'p1' ? $p1FlagGrid : $p2FlagGrid).appendChild(chip);
+    }
   } else {
     $feedback.textContent = `Wrong. Correct answer: ${result.correctCountryName} / ${result.correctCapitalName}.`;
     $feedback.className = 'feedback error';
@@ -174,8 +294,15 @@ function onSubmit() {
   updateScores();
   if (state.game.isWin()) {
     const winner = state.game.winnerPlayer();
-    const title = winner ? `${winner.toUpperCase()} wins! 🎉` : 'You win! 🎉';
-    const msg = winner ? `${winner.toUpperCase()} has conquered more than half of the world.` : 'You have conquered more than half of the world.';
+    let title, msg;
+    if (winner) {
+      const name = winner === 'p1' ? state.p1Name : state.p2Name;
+      title = `${name} wins! 🎉`;
+      msg = `${name} has conquered more than half of the world.`;
+    } else {
+      title = 'You win! 🎉';
+      msg = 'You have conquered more than half of the world.';
+    }
     showOverlay(title, msg);
   } else {
     // Always proceed to next turn after brief pause
@@ -183,10 +310,6 @@ function onSubmit() {
   }
 }
 
-function onSkip() {
-  state.game.skip();
-  nextTurn();
-}
 
 function showOverlay(title, message) {
   document.getElementById('overlayTitle').textContent = title;
@@ -199,6 +322,7 @@ function hideOverlay() {
 }
 
 function updateTurnBadge() {
+  if (!$turnBadge) return;
   const player = state.game.currentPlayer();
   if (state.game.mode === 'single') {
   $turnBadge.textContent = 'Single Player';
@@ -211,8 +335,8 @@ function updateTurnBadge() {
 }
 
 function updateScores() {
-  $p1Score.textContent = state.game.score('p1').toString();
-  $p2Score.textContent = state.game.score('p2').toString();
+  $p1PanelScore.textContent = state.game.score('p1').toString();
+  $p2PanelScore.textContent = state.game.score('p2').toString();
 }
 
   function updatePlaySectionColor() {
@@ -227,14 +351,24 @@ function updateScores() {
 
   function updatePlayerBanner() {
     if (state.game.mode === 'single') {
-      $playerBanner.textContent = 'Single Player';
+      $playerBanner.textContent = state.p1Name;
       $playerBanner.classList.remove('p1','p2');
+  if ($topBar) $topBar.classList.remove('right');
+      // Single player: place timer on the right consistently
+      if ($topBar && $turnTimer) {
+        $topBar.classList.remove('right');
+        $turnTimer.classList.remove('warn','danger');
+      }
       return;
     }
     const player = state.game.currentPlayer();
-    $playerBanner.textContent = `${player.toUpperCase()} Turn`;
+    const name = player === 'p1' ? state.p1Name : state.p2Name;
+    $playerBanner.textContent = name;
     $playerBanner.classList.toggle('p1', player === 'p1');
     $playerBanner.classList.toggle('p2', player === 'p2');
+  // Right-align player name on P2's turn
+  if ($topBar) $topBar.classList.toggle('right', player === 'p2');
+  if ($turnTimer) $turnTimer.classList.remove('warn','danger');
   }
 
   function playSound(type) {
@@ -267,6 +401,55 @@ function showToast(text) {
   $toast.textContent = text;
   $toast.classList.add('show');
   setTimeout(() => $toast.classList.remove('show'), 1000);
+}
+
+// Turn timer helpers
+function startTurnTimer(seconds) {
+  if (!$turnTimer) return;
+  clearTurnTimer();
+  state.timeLeft = seconds;
+  $turnTimer.textContent = state.timeLeft.toString();
+  $turnTimer.classList.remove('warn','danger');
+  state.timerId = setInterval(() => {
+    state.timeLeft -= 1;
+    if (state.timeLeft <= 0) {
+      $turnTimer.textContent = '0';
+      $turnTimer.classList.add('danger');
+      clearTurnTimer();
+      handleTimeUp();
+    } else {
+      $turnTimer.textContent = state.timeLeft.toString();
+      if (state.timeLeft <= 2) {
+        $turnTimer.classList.add('danger');
+        $turnTimer.classList.remove('warn');
+      } else if (state.timeLeft <= 4) {
+        $turnTimer.classList.add('warn');
+      }
+    }
+  }, 1000);
+}
+
+function clearTurnTimer() {
+  if (state.timerId) {
+    clearInterval(state.timerId);
+    state.timerId = null;
+  }
+}
+
+function handleTimeUp() {
+  // If already submitted (just in case), do nothing
+  if (state.submitted) return;
+  // Auto-mark wrong and advance
+  state.selectedCountryId = null;
+  state.selectedCapitalId = null;
+  state.submitted = true;
+  playSound('wrong');
+  $feedback.textContent = 'Time\'s up!';
+  $feedback.className = 'feedback error';
+  // Requeue the country and advance turn via game.skip()
+  state.game.skip();
+  // Proceed to next turn after a short delay
+  setTimeout(() => { nextTurn(); updateTurnBadge(); updatePlaySectionColor(); updatePlayerBanner(); }, 650);
 }
 
 // Boot

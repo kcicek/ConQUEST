@@ -6,53 +6,106 @@
   <title>ConQUEST</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
+
   <body>
-    <header class="app-header">
-  <h1>ConQUEST</h1>
-      <div class="score-panel">
-        <label class="mode-label">Mode:
-          <select id="modeSelect" class="mode-select">
-            <option value="single" selected>Single Player</option>
-            <option value="two">Two Players</option>
-          </select>
-        </label>
-        <div class="score-item"><span class="dot dot-blue"></span> P1: <span id="p1Score">0</span></div>
-        <div class="score-item"><span class="dot" style="background:#ef4444"></span> P2: <span id="p2Score">0</span></div>
-        <div class="turn-badge" id="turnBadge">Turn: P1</div>
-        <div class="score-item muted">Total: <span id="totalCount">0</span></div>
-        <button id="newGameBtn" class="btn btn-ghost">New Game</button>
+    <div id="introScreen" class="intro-overlay">
+      <div class="intro-content">
+        <h1>Welcome to <span class="intro-title with-logo">
+          <img id="introTitleLogo" src="./assets/logo.png" alt="ConQUEST logo"
+               onload="this.closest('.intro-title').classList.add('loaded')"
+               onerror="this.closest('.intro-title').classList.add('error')" />
+          <span class="intro-title-text">ConQUEST</span>
+        </span></h1>
+        <p class="intro-desc">
+          ConQUEST is a fast-paced geography game. Conquer the world by answering country and capital questions!<br>
+          <b>How to play:</b> A flag will appear. Select the correct country and its capital. Conquer more than half the map to win.
+        </p>
+        <form id="introForm">
+          <div class="intro-field">
+            <label for="introMode">Mode:</label>
+            <select id="introMode" class="mode-select">
+              <option value="single" selected>Single Player</option>
+              <option value="two">Two Players</option>
+            </select>
+          </div>
+          <div class="intro-field">
+            <label for="introTimerSeconds">Countdown (seconds):</label>
+            <select id="introTimerSeconds" class="mode-select">
+              <option value="3">3</option>
+              <option value="5">5</option>
+              <option value="7">7</option>
+              <option value="10" selected>10</option>
+              <option value="15">15</option>
+            </select>
+          </div>
+          <div class="intro-field" id="p1NameField">
+            <label for="p1Name">Player 1 Name:</label>
+            <input id="p1Name" type="text" maxlength="16" placeholder="Player 1" required autocomplete="off" />
+          </div>
+          <div class="intro-field" id="p2NameField" style="display:none">
+            <label for="p2Name">Player 2 Name:</label>
+            <input id="p2Name" type="text" maxlength="16" placeholder="Player 2" autocomplete="off" />
+          </div>
+          <button type="submit" class="btn btn-primary intro-start">Start Game</button>
+        </form>
       </div>
-    </header>
+    </div>
 
-    <main class="layout">
-      <section class="map-section">
-        <div id="mapContainer" class="map-container" aria-label="World map" role="img"></div>
-      </section>
-      <section class="play-section" id="playSection">
-        <div id="playerBanner" class="player-banner">Single Player</div>
-        <div class="flag-card" id="flagCard">
-          <div class="flag-emoji" id="flagEmoji">🏳️</div>
-          <div class="flag-label">Identify the country and its capital</div>
+    <div id="gameRoot" style="display:none">
+      <header class="app-header">
+        <div class="app-logo">
+          <img id="appLogo" src="./assets/logo.png" alt="ConQUEST logo"
+               onload="this.closest('.app-logo').classList.add('loaded')"
+               onerror="this.closest('.app-logo').classList.add('error')" />
+          <h1 class="logo-text">ConQUEST</h1>
         </div>
+        <button id="newGameBtn" class="btn btn-ghost" style="position:absolute; right:18px; top:14px;">New Game</button>
+      </header>
 
-        <div class="question">
-          <h2>Which country?</h2>
-          <div id="countryChoices" class="choices"></div>
+      <main class="layout">
+        <section class="map-section">
+          <div id="mapContainer" class="map-container" aria-label="World map" role="img"></div>
+        </section>
+
+        <div class="below-row">
+          <aside class="side-panel" id="p1Panel">
+            <div class="panel-header">
+              <div class="panel-name" id="p1PanelName">&nbsp;</div>
+              <div class="panel-score">Score: <span id="p1PanelScore">0</span></div>
+            </div>
+            <div class="flag-grid" id="p1FlagGrid"></div>
+          </aside>
+
+          <section class="play-section" id="playSection">
+            <div class="top-bar">
+              <div class="flag-emoji" id="flagEmoji">🏳️</div>
+              <div id="playerBanner" class="player-banner">Single Player</div>
+              <div id="turnTimer" class="turn-timer" aria-live="polite">5</div>
+            </div>
+
+            <div class="question">
+              <h2>Which country?</h2>
+              <div id="countryChoices" class="choices"></div>
+            </div>
+
+            <div class="question">
+              <h2>Which capital?</h2>
+              <div id="capitalChoices" class="choices"></div>
+            </div>
+
+            <div id="feedback" class="feedback" aria-live="polite"></div>
+          </section>
+
+          <aside class="side-panel" id="p2Panel">
+            <div class="panel-header">
+              <div class="panel-name" id="p2PanelName">&nbsp;</div>
+              <div class="panel-score">Score: <span id="p2PanelScore">0</span></div>
+            </div>
+            <div class="flag-grid" id="p2FlagGrid"></div>
+          </aside>
         </div>
-
-        <div class="question">
-          <h2>Which capital?</h2>
-          <div id="capitalChoices" class="choices"></div>
-        </div>
-
-        <div class="actions">
-          <button id="submitBtn" class="btn btn-primary" disabled>Submit</button>
-          <button id="skipBtn" class="btn btn-ghost">Skip</button>
-        </div>
-
-        <div id="feedback" class="feedback" aria-live="polite"></div>
-      </section>
-    </main>
+      </main>
+    </div>
 
   <div id="toast" class="toast" aria-live="polite"></div>
 
