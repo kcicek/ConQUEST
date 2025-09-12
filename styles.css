@@ -270,7 +270,7 @@ body {
   color: #f1f5f9;
 }
 .panel-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
-.panel-name { font-weight:700; color:#e5e7eb; }
+.panel-name { font-weight:700; color:#e5e7eb; font-size: 0.95em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .panel-score { color:#9ca3af; font-size:14px; }
 .flag-grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:6px; }
 .flag-chip { width:100%; aspect-ratio:4/3; border-radius:6px; box-shadow:0 1px 4px #0005; background:#0b1220; border:1px solid #1f2937; overflow:hidden; display:flex; align-items:center; justify-content:center; }
@@ -288,7 +288,7 @@ body {
 
 .player-banner {
   margin: 4px 4px 10px 4px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   border-radius: 10px;
   font-weight: 700;
   letter-spacing: 0.02em;
@@ -297,6 +297,10 @@ body {
   color: #0b1220;
   background: #e5e7eb;
   box-shadow: 0 2px 10px #0005;
+  font-size: 0.95em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .player-banner.p1 { background: #60a5fa; color: #0b1220; }
 .player-banner.p2 { background: #f87171; color: #0b1220; }
@@ -363,11 +367,11 @@ body {
 
 .question { margin-bottom: 10px; }
 .question h2 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
+  margin: 0 0 6px 0;
+  font-size: 14px;
   color: #64748b;
   font-weight: 600;
-  opacity: 0.65;
+  opacity: 0.7;
   letter-spacing: 0.01em;
 }
 .choices { display: grid; grid-template-columns: 1fr; gap: 8px; }
@@ -389,7 +393,7 @@ body {
 .btn-ghost { background: #0b1220; }
 
 .choice {
-  padding: 10px 12px;
+  padding: 8px 10px;
   background: #0b1220;
   border: 2px solid #1f2937;
   border-radius: 10px;
@@ -399,6 +403,10 @@ body {
   color: #e0e7ff;
   transition: background 0.18s, border 0.18s, color 0.18s, box-shadow 0.18s;
   box-shadow: 0 1px 4px #0002;
+  font-size: 0.95em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .choice.selected {
   background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
