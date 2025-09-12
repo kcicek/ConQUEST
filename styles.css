@@ -1,3 +1,28 @@
+@media (max-width: 350px) {
+  html, body { font-size: 12px; }
+  .app-header h1 { font-size: 15px; }
+  .app-logo { height: 36px; }
+  .app-logo img { max-height: 28px; }
+  .app-logo .logo-text { font-size: 14px; }
+  .player-banner { padding: 4px 7px; font-size: 0.8em; }
+  .flag-card { gap: 5px; padding: 6px; }
+  .flag-emoji { font-size: 24px; }
+  .flag-emoji img { width: 24px; height: 16px; }
+  .top-bar .flag-emoji { width: 48px; height: 32px; }
+  .top-bar .player-banner { font-size: 0.85em; }
+  .top-bar .turn-timer { padding: 3px 6px; min-width: 24px; font-size: 0.9em; }
+  .intro-title.with-logo img { max-height: 32px; }
+  .intro-title .intro-title-text { font-size: 1em; }
+  .intro-content { padding: 18px 6px 12px 6px; }
+  .intro-field input, .intro-field select { font-size: 0.95em; padding: 5px 7px; }
+  .btn { padding: 6px 8px; font-size: 0.95em; }
+  .side-panel { padding: 6px; }
+  .flag-grid { grid-template-columns: repeat(4, 1fr); gap: 3px; }
+  .map-container { height: 36vh; min-height: 120px; }
+  .question h2 { font-size: 12px; }
+  .choice { padding: 6px 7px; font-size: 0.85em; }
+  .overlay-content { max-width: 98vw; padding: 10px; }
+}
 /* Intro overlay styles */
 .intro-overlay {
   position: fixed;
@@ -329,6 +354,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: 16px;
+  z-index: 1001;
 }
 .overlay.hidden { display: none; }
 .overlay-content {
