@@ -492,6 +492,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  -webkit-tap-highlight-color: transparent; /* avoid sticky tap highlight on mobile */
 }
 .choice.vanish {
   opacity: 0;
@@ -508,11 +509,15 @@ body {
   box-shadow: 0 0 0 3px #fbbf2433, 0 2px 8px #0003;
   z-index: 1;
 }
-.choice:hover {
-  background: #1e293b;
-  color: #bae6fd;
-  border-color: #38bdf8;
+@media (hover: hover) {
+  .choice:hover {
+    background: #1e293b;
+    color: #bae6fd;
+    border-color: #38bdf8;
+  }
 }
+.choice:focus { outline: none; }
+.choice:focus-visible { outline: 2px solid #fbbf24; outline-offset: 2px; }
 
 .actions { display: none; }
 .feedback { margin-top: 6px; min-height: 20px; color: var(--muted); }

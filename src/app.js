@@ -242,6 +242,16 @@ function nextTurn() {
   $feedback.textContent = '';
   state.selectedCountryId = null;
   state.selectedCapitalId = null;
+  // Clear any prior selection visual states to avoid pre-highlight on mobile
+  [$countryChoices, $capitalChoices].forEach(list => {
+    if (!list) return;
+    list.querySelectorAll('.choice').forEach(ch => {
+      ch.classList.remove('selected', 'vanish');
+      ch.blur();
+      ch.disabled = false;
+    });
+    list.removeAttribute('data-chosen');
+  });
 
   // Only start timer if not Cheater mode (0 seconds)
   if (state.turnSeconds && state.turnSeconds > 0) {
