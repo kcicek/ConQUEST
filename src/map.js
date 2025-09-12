@@ -1,8 +1,8 @@
 export function renderMap({ countries, onCountryClick, getFillClass }) {
   const svgNS = 'http://www.w3.org/2000/svg';
   const svg = document.createElementNS(svgNS, 'svg');
-  // Crop top/bottom by shifting Y and reducing height for a more compact look
-  svg.setAttribute('viewBox', '0 30 720 300');
+  // Crop moderately to keep compactness without over-zooming
+  svg.setAttribute('viewBox', '0 36 720 288');
   svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
   svg.setAttribute('class', 'map-svg');
   svg.setAttribute('role', 'img');

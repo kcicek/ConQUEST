@@ -37,6 +37,7 @@ const state = {
   timerId: null,
   timeLeft: 0,
   turnSeconds: 10,
+  inputEnabledAt: 0,
 };
 
 // Elements
@@ -64,6 +65,7 @@ const $playSection = document.getElementById('playSection');
 const $toast = document.getElementById('toast');
 const $playerBanner = document.getElementById('playerBanner');
 const $topBar = document.querySelector('#playSection .top-bar');
+const $surrenderBtn = document.getElementById('surrenderBtn');
 const $turnTimer = document.getElementById('turnTimer');
 // New side panels
 const $p1Panel = document.getElementById('p1Panel');
@@ -110,11 +112,25 @@ function startGame() {
   state.game.setMode(state.mode);
   renderWorld();
   restart();
+
+  // Show Surrender button only in two-player mode
+  if ($surrenderBtn) $surrenderBtn.style.display = (state.mode === 'two') ? 'block' : 'none';
 }
 
 function bindEvents() {
   $newGame.addEventListener('click', () => showIntroScreen());
   $playAgain.addEventListener('click', () => { hideOverlay(); restart(); });
+  if ($surrenderBtn) {
+    $surrenderBtn.addEventListener('click', () => {
+      if (state.game && state.mode === 'two') {
+        // The other player wins
+        const loser = state.game.currentPlayer();
+        const winner = loser === 'p1' ? 'p2' : 'p1';
+        const name = winner === 'p1' ? state.p1Name : state.p2Name;
+        showOverlay(`${name} wins! 🎉`, `${name} wins by surrender.`);
+      }
+    });
+  }
 // Show intro screen and hide game UI
 function showIntroScreen() {
   clearTurnTimer();
@@ -157,6 +173,7 @@ function restart() {
   updateTurnBadge();
   updatePlaySectionColor();
   updatePlayerBanner();
+  updateActivePanel();
 }
 
 function renderWorld() {
@@ -182,9 +199,19 @@ function nextTurn() {
     showOverlay('Game Over', 'No more countries left.');
     return;
   }
+  // Reset feedback center mode
+  $feedback.classList.remove('centered');
+  // Show Surrender button only in two-player mode
+  if ($surrenderBtn) $surrenderBtn.style.display = (state.mode === 'two') ? 'block' : 'none';
   updateTurnBadge();
   $flagEmoji.innerHTML = '';
   state.submitted = false;
+  // Small grace period to avoid ghost taps selecting in the next turn
+  state.inputEnabledAt = Date.now() + 280;
+  // Remove focus from any previously focused element
+  if (document.activeElement && typeof document.activeElement.blur === 'function') {
+    document.activeElement.blur();
+  }
   const country = state.game.pool.find(c => c.id === state.game.currentTargetId);
   if (country && country.flagCode) {
     const img = document.createElement('img');
@@ -233,15 +260,30 @@ function nextTurn() {
     state.selectedCapitalId = id;
     maybeEnableSubmit();
   });
+  updateActivePanel();
 }
 
 function renderChoices(container, options, onPick) {
   clearChildren(container);
+  // Reset choice container state
+  container.dataset.chosen = '0';
   options.forEach(opt => {
     const btn = choiceButton(opt.label);
     btn.addEventListener('click', () => {
+      // Ignore clicks if turn not yet fully active or already chosen/submitted
+      if (Date.now() < state.inputEnabledAt) return;
+      if (state.submitted) return;
+      if (container.dataset.chosen === '1') return;
+      // Mark selected and hide the others
       container.querySelectorAll('.choice').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
+      container.dataset.chosen = '1';
+      container.querySelectorAll('.choice').forEach(b => {
+        if (b !== btn) {
+          b.classList.add('vanish');
+          b.disabled = true;
+        }
+      });
       onPick(opt.id);
     });
     container.appendChild(btn);
@@ -266,7 +308,7 @@ function onSubmit() {
     let playerName = answeringPlayer === 'p1' ? state.p1Name : state.p2Name;
     if (state.game.mode === 'single') playerName = state.p1Name;
     $feedback.textContent = `Correct! Country conquered for ${playerName}.`;
-    $feedback.className = 'feedback success';
+  $feedback.className = 'feedback success';
     showToast(`+1 for ${playerName}!`);
     playSound('correct');
     // Add flag chip to answering player's grid
@@ -297,7 +339,7 @@ function onSubmit() {
     }
   } else {
     $feedback.textContent = `Wrong. Correct answer: ${result.correctCountryName} / ${result.correctCapitalName}.`;
-    $feedback.className = 'feedback error';
+  $feedback.className = 'feedback error';
     playSound('wrong');
   }
   // Re-render map immediately to reflect new owner
@@ -327,12 +369,21 @@ function onSubmit() {
     showOverlay(title, msg);
   } else {
     // Always proceed to next turn after brief pause
-  setTimeout(() => { nextTurn(); updateTurnBadge(); updatePlaySectionColor(); updatePlayerBanner(); }, 650);
+  // Center feedback during the brief pause (questions stay visible)
+  $feedback.classList.add('centered');
+  setTimeout(() => { nextTurn(); updateTurnBadge(); updatePlaySectionColor(); updatePlayerBanner(); }, 850);
+  setTimeout(() => { updateActivePanel(); }, 860);
   }
 }
 
 
 function showOverlay(title, message) {
+  // Stop any active turn countdown when showing overlay (win/surrender/game over)
+  clearTurnTimer();
+  if ($turnTimer) {
+    $turnTimer.classList.remove('warn','danger');
+    $turnTimer.style.visibility = 'hidden';
+  }
   document.getElementById('overlayTitle').textContent = title;
   document.getElementById('overlayMessage').textContent = message;
   $overlay.classList.remove('hidden');
@@ -371,15 +422,12 @@ function updateScores() {
   }
 
   function updatePlayerBanner() {
+    if (!$playerBanner) return;
+    // Clean timer state each turn
+    if ($turnTimer) $turnTimer.classList.remove('warn','danger');
     if (state.game.mode === 'single') {
       $playerBanner.textContent = state.p1Name;
       $playerBanner.classList.remove('p1','p2');
-  if ($topBar) $topBar.classList.remove('right');
-      // Single player: place timer on the right consistently
-      if ($topBar && $turnTimer) {
-        $topBar.classList.remove('right');
-        $turnTimer.classList.remove('warn','danger');
-      }
       return;
     }
     const player = state.game.currentPlayer();
@@ -387,9 +435,12 @@ function updateScores() {
     $playerBanner.textContent = name;
     $playerBanner.classList.toggle('p1', player === 'p1');
     $playerBanner.classList.toggle('p2', player === 'p2');
-  // Right-align player name on P2's turn
-  if ($topBar) $topBar.classList.toggle('right', player === 'p2');
-  if ($turnTimer) $turnTimer.classList.remove('warn','danger');
+  }
+
+  function updateActivePanel() {
+    const player = state.game.currentPlayer();
+    $p1Panel.classList.toggle('active', state.game.mode !== 'single' && player === 'p1');
+    $p2Panel.classList.toggle('active', state.game.mode !== 'single' && player === 'p2');
   }
 
   function playSound(type) {
@@ -466,11 +517,12 @@ function handleTimeUp() {
   state.submitted = true;
   playSound('wrong');
   $feedback.textContent = 'Time\'s up!';
-  $feedback.className = 'feedback error';
+  $feedback.className = 'feedback warn';
+  $feedback.classList.add('centered');
   // Requeue the country and advance turn via game.skip()
   state.game.skip();
   // Proceed to next turn after a short delay
-  setTimeout(() => { nextTurn(); updateTurnBadge(); updatePlaySectionColor(); updatePlayerBanner(); }, 650);
+  setTimeout(() => { nextTurn(); updateTurnBadge(); updatePlaySectionColor(); updatePlayerBanner(); }, 850);
 }
 
 // Boot

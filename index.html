@@ -72,42 +72,49 @@
       <main class="layout">
         <section class="map-section">
           <div id="mapContainer" class="map-container" aria-label="World map" role="img"></div>
+          <div class="map-flag-overlay">
+            <div class="flag-emoji" id="flagEmoji">🏳️</div>
+          </div>
         </section>
 
         <div class="below-row">
           <aside class="side-panel" id="p1Panel">
             <div class="panel-header">
               <div class="panel-name" id="p1PanelName">&nbsp;</div>
-              <div class="panel-score">Score: <span id="p1PanelScore">0</span></div>
             </div>
+            <div class="panel-score">Score: <span id="p1PanelScore">0</span></div>
             <div class="flag-grid" id="p1FlagGrid"></div>
           </aside>
 
+
           <section class="play-section" id="playSection">
             <div class="top-bar">
-              <div class="flag-emoji" id="flagEmoji">🏳️</div>
-              <div id="playerBanner" class="player-banner">Single Player</div>
+              <div id="playerBanner" class="player-banner"></div>
               <div id="turnTimer" class="turn-timer" aria-live="polite">5</div>
             </div>
 
-            <div class="question">
-              <h2>Country</h2>
-              <div id="countryChoices" class="choices"></div>
+            <div class="question-area">
+              <div class="question question-country">
+                <h2>Country</h2>
+                <div id="countryChoices" class="choices"></div>
+              </div>
+
+              <div class="question question-capital">
+                <h2>Capital</h2>
+                <div id="capitalChoices" class="choices"></div>
+              </div>
+
+              <div id="feedback" class="feedback" aria-live="polite"></div>
             </div>
 
-            <div class="question">
-              <h2>Capital</h2>
-              <div id="capitalChoices" class="choices"></div>
-            </div>
-
-            <div id="feedback" class="feedback" aria-live="polite"></div>
+            <button id="surrenderBtn" class="btn btn-danger surrender-btn" type="button" style="display:none;"><span class="flag-icon">🏳️</span> Surrender</button>
           </section>
 
           <aside class="side-panel" id="p2Panel">
             <div class="panel-header">
               <div class="panel-name" id="p2PanelName">&nbsp;</div>
-              <div class="panel-score">Score: <span id="p2PanelScore">0</span></div>
             </div>
+            <div class="panel-score">Score: <span id="p2PanelScore">0</span></div>
             <div class="flag-grid" id="p2FlagGrid"></div>
           </aside>
         </div>
