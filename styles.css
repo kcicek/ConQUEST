@@ -464,9 +464,54 @@ body {
 
 /* Mobile tweaks: stack panels and hide P2 in single mode via JS */
 @media (max-width: 899px) {
-  #p2Panel { display: none; }
+  /* Show both panels on phones; layout tweaked further below */
+  #p2Panel { display: block; }
   .flag-grid { grid-template-columns: repeat(6, 1fr); }
   .map-container { height: 46vh; min-height: 220px; }
+}
+
+/* Compact phone layout: side panels left/right of question box */
+@media (max-width: 600px) {
+  .below-row {
+    display: grid;
+    grid-template-columns: 76px 1fr 76px;
+    gap: 6px;
+    align-items: start;
+  }
+  #p1Panel, #p2Panel { padding: 6px; border-radius: 10px; }
+  #p1Panel { grid-column: 1; }
+  #playSection { grid-column: 2; }
+  #p2Panel { grid-column: 3; }
+  .panel-header { margin-bottom: 6px; }
+  .panel-name { font-size: 12px; }
+  .panel-score { font-size: 12px; }
+  .flag-grid { grid-template-columns: repeat(2, 1fr); gap: 4px; }
+  .flag-chip { border-radius: 4px; }
+
+  /* Two-column questions inside play-section */
+  #playSection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "top top"
+      "q1 q2"
+      "feedback feedback";
+    column-gap: 8px;
+    row-gap: 6px;
+  }
+  #playSection .top-bar { grid-area: top; margin-bottom: 0; }
+  #playSection .question:first-of-type { grid-area: q1; }
+  #playSection .question:nth-of-type(2) { grid-area: q2; }
+  #playSection #feedback { grid-area: feedback; }
+  .question h2 { font-size: 13px; margin-bottom: 6px; }
+  .choice { padding: 8px 9px; font-size: 0.92em; }
+}
+
+@media (max-width: 380px) {
+  .below-row { grid-template-columns: 68px 1fr 68px; gap: 5px; }
+  .flag-grid { grid-template-columns: 2; gap: 3px; }
+  .panel-name, .panel-score { font-size: 11px; }
+  .choice { padding: 7px 8px; font-size: 0.88em; }
 }
 
 /* Extra compact mode for small phones */
@@ -497,7 +542,8 @@ body {
   .side-panel { padding: 10px; }
   .flag-grid { grid-template-columns: repeat(5, 1fr); gap: 5px; }
   .map-container { height: 44vh; min-height: 200px; }
-}
+  .flag-grid { grid-template-columns: repeat(3, 1fr); gap: 2px; }
+  .flag-chip { border-radius: 3px; }
 
 @media (max-width: 380px) {
   .app-header h1 { font-size: 18px; }
