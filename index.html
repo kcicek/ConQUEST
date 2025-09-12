@@ -10,16 +10,22 @@
   <body>
     <div id="introScreen" class="intro-overlay">
       <div class="intro-content">
-        <h1>Welcome to <span class="intro-title with-logo">
+  <h1><span class="intro-welcome">Welcome to</span> <span class="intro-title with-logo">
           <img id="introTitleLogo" src="./assets/logo.png" alt="ConQUEST logo"
                onload="this.closest('.intro-title').classList.add('loaded')"
                onerror="this.closest('.intro-title').classList.add('error')" />
           <span class="intro-title-text">ConQUEST</span>
         </span></h1>
-        <p class="intro-desc">
-          ConQUEST is a fast-paced geography game. Conquer the world by answering country and capital questions!<br>
-          <b>How to play:</b> A flag will appear. Select the correct country and its capital. Conquer more than half the map to win.
-        </p>
+        <div class="intro-flag-banner" id="introFlagBanner"></div>
+        <div class="intro-infobox">
+          <div class="intro-infobox-title">How to Play</div>
+          <ul class="intro-infobox-list">
+            <li>A flag appears at the top.</li>
+            <li>Select the correct country and its capital.</li>
+            <li>Conquer more than half the map to win.</li>
+            <li>Play solo or compete in two-player mode.</li>
+          </ul>
+        </div>
         <form id="introForm">
           <div class="intro-field">
             <label for="introMode">Mode:</label>
@@ -29,13 +35,14 @@
             </select>
           </div>
           <div class="intro-field">
-            <label for="introTimerSeconds">Countdown (seconds):</label>
+            <label for="introTimerSeconds">Difficulty:</label>
             <select id="introTimerSeconds" class="mode-select">
-              <option value="3">3</option>
-              <option value="5">5</option>
-              <option value="7">7</option>
-              <option value="10" selected>10</option>
-              <option value="15">15</option>
+              <option value="0">Cheater</option>
+              <option value="20">Beginner</option>
+              <option value="15">Intermediate</option>
+              <option value="10" selected>Advanced</option>
+              <option value="5">Pro</option>
+              <option value="3">Insane</option>
             </select>
           </div>
           <div class="intro-field" id="p1NameField">

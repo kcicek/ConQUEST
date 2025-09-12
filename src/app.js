@@ -3,6 +3,28 @@ import { renderMap } from './map.js';
 import { majorCountries } from './data.js';
 import { el, clearChildren, choiceButton } from './ui.js';
 
+// --- Intro flag banner population ---
+function renderIntroFlagBanner() {
+  const $banner = document.getElementById('introFlagBanner');
+  if (!$banner) return;
+  $banner.innerHTML = '';
+  // Pick 10 random unique countries with flagCode
+  const pool = majorCountries.filter(c => c.flagCode);
+  const used = new Set();
+  while ($banner.childElementCount < 10 && used.size < pool.length) {
+    const idx = Math.floor(Math.random() * pool.length);
+    if (used.has(idx)) continue;
+    used.add(idx);
+    const c = pool[idx];
+    const img = document.createElement('img');
+    img.src = `https://flagcdn.com/w40/${c.flagCode.toLowerCase()}.png`;
+    img.alt = c.name + ' flag';
+    img.title = c.name;
+    img.onerror = () => { img.style.display = 'none'; };
+    $banner.appendChild(img);
+  }
+}
+
 // App state
 const state = {
   game: null,
@@ -156,14 +178,11 @@ function renderWorld() {
 
 function nextTurn() {
   const q = state.game.nextQuestion();
-  console.log('DEBUG: nextQuestion', q);
   if (!q) {
-    // All covered
     showOverlay('Game Over', 'No more countries left.');
     return;
   }
   updateTurnBadge();
-  // Show flag image in banner if flagCode is present, else fallback to emoji
   $flagEmoji.innerHTML = '';
   state.submitted = false;
   const country = state.game.pool.find(c => c.id === state.game.currentTargetId);
@@ -172,10 +191,8 @@ function nextTurn() {
     const code = (country.flagCode || '').toLowerCase();
     img.src = `https://flagcdn.com/w80/${code}.png`;
     img.alt = country.name + ' flag';
-  // centered flag lives in flag-top container; image sizing via CSS
     img.title = country.name + ' flag';
     img.onerror = () => {
-      // fallback chip if image fails to load
       const chip = document.createElement('div');
       chip.style.width = '48px';
       chip.style.height = '36px';
@@ -198,12 +215,16 @@ function nextTurn() {
   $feedback.textContent = '';
   state.selectedCountryId = null;
   state.selectedCapitalId = null;
-  // no manual submit; auto-submit when both picked
 
-  // Start per-turn countdown (5 seconds)
-  startTurnTimer(state.turnSeconds || 10);
+  // Only start timer if not Cheater mode (0 seconds)
+  if (state.turnSeconds && state.turnSeconds > 0) {
+    startTurnTimer(state.turnSeconds);
+    if ($turnTimer) $turnTimer.style.visibility = '';
+  } else {
+    clearTurnTimer();
+    if ($turnTimer) $turnTimer.style.visibility = 'hidden';
+  }
 
-  // Render choices
   renderChoices($countryChoices, q.countryOptions, (id) => {
     state.selectedCountryId = id;
     maybeEnableSubmit();
@@ -453,4 +474,7 @@ function handleTimeUp() {
 }
 
 // Boot
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  renderIntroFlagBanner();
+  init();
+});
