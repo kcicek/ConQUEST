@@ -1,4 +1,4 @@
-# Conquer the World
+# Conquer the World by knowing Countries and Capitals
 
 A browser-based geography game. Identify the correct country and its capital from 3 choices each to conquer it on the world map.
 
