@@ -11,15 +11,41 @@ A browser-based geography game. Identify the correct country and its capital fro
 - Modular JS for easy future expansion to two-player mode
 
 ## Run locally
-Open `index.html` in a modern browser.
 
-Optional: serve via a local web server (helps with some browser security settings).
+### Option 1: Vite dev server (recommended)
+1. Install dependencies:
+	```powershell
+	npm install
+	```
+2. Start the dev server with hot reload:
+	```powershell
+	npm run dev
+	```
+3. Open the printed local URL (usually http://localhost:5173).
+
+Build production bundle:
+```powershell
+npm run build
+```
+
+Preview the production build locally:
+```powershell
+npm run preview
+```
+
+### Option 2: Open statically
+Still works fine—just open `index.html` directly in a modern browser.
+
+Optional static serving (helps with some browser security settings):
 
 PowerShell (Windows):
-```
+```powershell
 powershell -NoProfile -Command "Start-Process msedge index.html"
 ```
-Or use any static server (e.g., VS Code Live Server).
+Or use any static server extension (e.g., VS Code Live Server) or:
+```powershell
+npx serve .
+```
 
 ## Project structure
 - `index.html` — App shell and layout
